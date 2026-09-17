@@ -48,7 +48,7 @@ The system therefore separates:
 A licensing-sensitive opportunity is routed to the compliance gate before action.
 
 ## 2026 Texas buyer workflow
-TREC states that effective January 1, 2026, written agreements are required in specified residential buyer situations before showing residential property or presenting an offer on behalf of a prospective buyer. Non-representation showing arrangements have separate restrictions. citehttps://www.trec.texas.gov/article/what-changes-2026-about-buyertenant-representation-texas
+TREC states that effective January 1, 2026, written agreements are required in specified residential buyer situations before showing residential property or presenting an offer on behalf of a prospective buyer. Non-representation showing arrangements have separate restrictions. citehttps://www.trec.texas.gov/article/what-changes-2026-about-buyer-tenant-representation-texas
 
 Do not build an automated workflow that assumes a prospective residential buyer can simply be shown property or advised on a transaction without the applicable written agreement and broker-controlled process.
 
