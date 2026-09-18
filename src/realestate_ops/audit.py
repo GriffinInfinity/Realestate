@@ -1,9 +1,4 @@
-"""Append-only audit event model and in-memory event store.
-
-The store is deliberately small and dependency-free. A database adapter can
-replace it later without changing event semantics.
-"""
-
+"""Append-only audit event model and in-memory event store."""
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
@@ -22,22 +17,24 @@ class AuditEvent:
     new_value: Any = None
     metadata: dict[str, Any] | None = None
 
+@dataclass(frozen=True)
+class AuditCheckpoint:
+    record_id: str
+    event_count: int
+
 class AuditLog:
-    def __init__(self) -> None:
-        self._events: list[AuditEvent] = []
-
+    def __init__(self) -> None: self._events: list[AuditEvent] = []
     def append(self, event: AuditEvent) -> None:
-        if any(e.event_id == event.event_id for e in self._events):
-            raise ValueError(f"Duplicate event_id: {event.event_id}")
+        if any(e.event_id == event.event_id for e in self._events): raise ValueError(f"Duplicate event_id: {event.event_id}")
         self._events.append(event)
-
     def record(self, event_id: str, event_type: str, record_id: str, actor: str, source: str, previous_value: Any = None, new_value: Any = None, metadata: dict[str, Any] | None = None) -> AuditEvent:
-        event = AuditEvent(event_id, event_type, record_id, datetime.now(timezone.utc).isoformat(), actor, source, previous_value, new_value, metadata)
-        self.append(event)
-        return event
-
-    def for_record(self, record_id: str) -> list[AuditEvent]:
-        return [e for e in self._events if e.record_id == record_id]
-
-    def export(self) -> list[dict[str, Any]]:
-        return [asdict(e) for e in self._events]
+        event=AuditEvent(event_id,event_type,record_id,datetime.now(timezone.utc).isoformat(),actor,source,previous_value,new_value,metadata); self.append(event); return event
+    def for_record(self, record_id: str) -> list[AuditEvent]: return [e for e in self._events if e.record_id == record_id]
+    def checkpoint(self, record_id: str) -> AuditCheckpoint: return AuditCheckpoint(record_id,len(self.for_record(record_id)))
+    def rollback_to(self, checkpoint: AuditCheckpoint) -> None:
+        kept=[]; removed=0
+        for event in self._events:
+            if event.record_id==checkpoint.record_id and removed < max(0,len(self.for_record(checkpoint.record_id))-checkpoint.event_count): removed += 1
+            else: kept.append(event)
+        self._events=kept
+    def export(self) -> list[dict[str, Any]]: return [asdict(e) for e in self._events]
