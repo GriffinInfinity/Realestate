@@ -1,0 +1,13 @@
+[
+  {
+    "record_id": "EXAMPLE-001",
+    "organization_or_person": "Example Development LLC",
+    "business_reason": "Verified DFW development relationship",
+    "stage": "Qualified",
+    "compliance_status": "Clear",
+    "dnc_opt_out": false,
+    "next_action": "Research appropriate project contact",
+    "next_action_date": "2026-09-21",
+    "source_requires_refresh": false
+  }
+]
