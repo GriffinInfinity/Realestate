@@ -1,0 +1,105 @@
+version: 1
+system: realestate
+market: DFW
+default_timezone: America/Chicago
+
+statuses:
+  prospect:
+    - New
+    - Qualified
+    - Engaged
+    - Opportunity
+    - Active
+    - Won
+    - Nurture
+    - Disqualified
+  compliance:
+    - Clear
+    - Review Required
+    - Blocked
+  verification:
+    - Unverified
+    - Partially Verified
+    - Verified
+    - Needs Review
+
+required_after_qualification:
+  - next_action
+  - next_action_date
+  - compliance_status
+
+queues:
+  research:
+    include:
+      - market_signal
+      - unverified_prospect
+      - source_needs_refresh
+  verification:
+    include:
+      - partially_verified
+      - needs_review
+      - duplicate_candidate
+  follow_up:
+    include:
+      - qualified_with_due_next_action
+      - engaged_with_due_next_action
+      - opportunity_with_due_next_action
+      - active_with_due_next_action
+  compliance:
+    include:
+      - compliance_review_required
+      - compliance_blocked
+  opportunity_review:
+    include:
+      - opportunity_missing_evidence
+      - opportunity_missing_decision_maker
+      - opportunity_missing_service
+      - opportunity_aging
+  revenue:
+    include:
+      - won_with_revenue_evidence
+      - revenue_event_pending_record
+
+suppression:
+  dnc_opt_out: true
+  missing_identity: true
+  missing_business_reason: true
+  unsupported_authority_claim: true
+
+automation_rules:
+  - id: R001
+    name: qualified_requires_next_action
+    when: stage in [Qualified, Engaged, Opportunity, Active]
+    require: [next_action, next_action_date]
+    otherwise: queue:verification
+  - id: R002
+    name: compliance_gate
+    when: compliance_status == Review Required
+    action: queue:compliance
+  - id: R003
+    name: dnc_suppression
+    when: dnc_opt_out == true
+    action: suppress_commercial_outreach
+  - id: R004
+    name: estimate_not_revenue
+    when: estimated_value exists and actual_revenue is empty
+    action: exclude_from_realized_revenue
+  - id: R005
+    name: revenue_requires_evidence
+    when: stage == Won
+    require: [actual_revenue, revenue_date, revenue_evidence]
+    otherwise: queue:revenue
+  - id: R006
+    name: stale_source
+    when: source_requires_refresh == true
+    action: queue:research
+
+audit:
+  material_change_required:
+    - record_id
+    - action
+    - timestamp
+    - source_or_trigger
+    - previous_value
+    - new_value
+    - actor
